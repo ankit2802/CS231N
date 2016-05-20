@@ -94,7 +94,7 @@ def softmax_loss_vectorized(W, X, y, reg):
 
   # Regularization term
   loss += 0.5 * reg * np.sum(W ** 2)
-  print dW.shape,W.shape
+  #print dW.shape,W.shape
   dW = dW.T
   dW += reg * W
   #############################################################################
