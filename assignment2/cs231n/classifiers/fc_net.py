@@ -177,9 +177,6 @@ class FullyConnectedNet(object):
     # parameters should be initialized to zero.                                #
     ############################################################################
     for i in range(1, self.num_layers+1):
-
-      #layer_input_dim = input_dim if i == 1 else hidden_dims[i-2]
-      #layer_output_dim = num_classes if i==self.num_layers else hidden_dims[i-1]
       if i == 1:
         input_layer_dim = input_dim
       else:
@@ -189,11 +186,9 @@ class FullyConnectedNet(object):
         output_layer_dim = num_classes
       else:
         output_layer_dim = hidden_dims[i-1]
-
-
       self.params['W' + str(i)] = np.random.normal(0, weight_scale, (input_layer_dim, output_layer_dim))
       self.params['b' + str(i)] = np.zeros(output_layer_dim)
-
+      #if we are using batch normalization
       if use_batchnorm and i!=self.num_layers:
           self.params['beta'+str(i)]=np.zeros(output_layer_dim)
           self.params['gamma'+str(i)]=np.ones(output_layer_dim)
@@ -205,6 +200,7 @@ class FullyConnectedNet(object):
     # dropout layer so that the layer knows the dropout probability and the mode
     # (train / test). You can pass the same dropout_param to each dropout layer.
     self.dropout_param = {}
+    #if we are using dropout
     if self.use_dropout:
       self.dropout_param = {'mode': 'train', 'p': dropout}
       if seed is not None:
@@ -216,6 +212,7 @@ class FullyConnectedNet(object):
     # of the first batch normalization layer, self.bn_params[1] to the forward
     # pass of the second batch normalization layer, etc.
     self.bn_params = []
+    #if we are using batch normalization
     if self.use_batchnorm:
       self.bn_params = [{'mode': 'train'} for i in xrange(self.num_layers - 1)]
     
@@ -235,8 +232,10 @@ class FullyConnectedNet(object):
 
     # Set train/test mode for batchnorm params and dropout param since they
     # behave differently during training and testing.
+    #if we are using dropout
     if self.dropout_param is not None:
       self.dropout_param['mode'] = mode   
+    #if we are using batch normalization
     if self.use_batchnorm:
       for bn_param in self.bn_params:
         bn_param[mode] = mode
@@ -261,6 +260,7 @@ class FullyConnectedNet(object):
     for i in range(1, self.num_layers):
         keyW = 'W' + str(i)
         keyb = 'b' + str(i)
+        #if we are using batch normalization
         if self.use_batchnorm:
             key_gamma = 'gamma'+str(i)
             key_beta = 'beta'+str(i)
@@ -272,7 +272,7 @@ class FullyConnectedNet(object):
             affine_bn_relu_cache[i]=cache
         else:
             current_input, affine_relu_cache[i] = affine_relu_forward(current_input, self.params[keyW], self.params[keyb])
-
+        #if we use dropout
         if self.use_dropout:
             current_input, dropout_cache[i] = dropout_forward(current_input,self.dropout_param)
     # Last layer:
@@ -309,10 +309,12 @@ class FullyConnectedNet(object):
     grads['b'+str(self.num_layers)] = affine_db
     loss += 0.5 * self.reg*(np.sum(self.params['W'+str(self.num_layers)]* self.params['W'+str(self.num_layers)]))
     for i in range(self.num_layers-1,0,-1):
+        #if we are using dropout
         if self.use_dropout:
             affine_dx = dropout_backward(affine_dx, dropout_cache[i])
         if not self.use_batchnorm:
             affine_dx, affine_dw, affine_db = affine_relu_backward(affine_dx, affine_relu_cache[i])
+        #if we are using batch normalization
         else:
             fc_cache, bn_cache, relu_cache = affine_bn_relu_cache[i]
             drelu_out = relu_backward(affine_dx, relu_cache)
