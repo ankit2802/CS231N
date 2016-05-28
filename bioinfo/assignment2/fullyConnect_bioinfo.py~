@@ -1,0 +1,68 @@
+import matplotlib.image as mpimg
+import os
+import numpy as np
+import h5py
+h5f = h5py.File('img_data.h5','r')
+imges = h5f['dataset_1'][:]
+h5f.close()
+#import time
+#t=time.time()
+#imges = np.array([mpimg.imread(name) for name in os.listdir('../jpeg')], dtype=np.float64)
+#print data.reshape(35116,196608).shape
+#data=data.reshape(35116,196608)
+
+best_model = None
+################################################################################
+# TODO: Train the best FullyConnectedNet that you can on CIFAR-10. You might   #
+# batch normalization and dropout useful. Store your best model in the         #
+# best_model variable.                                                         #
+################################################################################
+'''
+Data must be of the format
+  data = {
+    'X_train': # training data
+    'y_train': # training labels
+    'X_val': # validation data
+    'X_train': # validation labels
+  }
+'''
+y = loadtxt("train_labels.txt", dtype=np.uint8, delimiter="\n", unpack=False)
+data={
+	X_train= imges[8000:35116]
+	#load labels
+	y_train= y[8000:35116]
+	X_val= imges[3000:8000]
+	y_val= y[3000:8000]
+}
+
+lr = 2.113669e-04
+ws = 1.461858e-02
+
+model = FullyConnectedNet([100, 100, 100, 100],
+      weight_scale=ws, dtype=np.float64,use_batchnorm=False, reg= 1e-2)
+solver = Solver(model, data,
+        print_every=100, num_epochs=10, batch_size=100,
+        update_rule='adam',
+        optim_config={
+          'learning_rate': lr,
+        },
+        lr_decay = 0.9,
+        verbose = True
+        )   
+
+solver.train()
+
+plt.subplot(2, 1, 1)
+plt.plot(solver.loss_history)
+plt.title('Loss history')
+plt.xlabel('Iteration')
+plt.ylabel('Loss')
+
+plt.subplot(2, 1, 2)
+plt.plot(solver.train_acc_history, label='train')
+plt.plot(solver.val_acc_history, label='val')
+plt.title('Classification accuracy history')
+plt.xlabel('Epoch')
+plt.ylabel('Clasification accuracy')
+plt.show() 
+best_model = model
